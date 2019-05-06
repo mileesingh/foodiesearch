@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html ng-app="app" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Foodie Search</title>
+
+    <script src="script/jquery-3.1.0.min.js"></script>
+    <script src="script/jquery-ui.js"></script>
+
+    <script src="script/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-resource.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
+    <script src="script/angular-material.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBng2wmsZGUcwLRtzkkEGQ4eOVlmOThL5Y&libraries=places"></script>
+    <script type="text/javascript" src="script/noty/packaged/jquery.noty.packaged.js"></script>
+    <script src="script/yelp/oauth.js"></script>
+    <script src="script/yelp/sha1.js"></script>
+    <script src="script/script.js"></script>
+    <script src="script/app.js"></script>
+
+    <link rel="stylesheet"
+          href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css">
+    <link rel="stylesheet" href="static/css/jquery-ui.css">
+    <link rel="stylesheet" href="static/css/jquery-ui.structure.css">
+    <link rel="stylesheet" href="static/css/jquery-ui.theme.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-84547016-1', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+</head>
+<body>
+<!--direction dialog box-->
+<div id="dialog" title="Directions">
+    <div class="container">
+        <div class="col-md-6" style="height:400px" id="map"></div>
+        <div class="col-md-6" style="height:400px;" id="right-panel"></div>
+    </div>
+</div>
+<!--info dialog box appear when clicked on link-->
+<div id="dialoginfo" title="Know About Foodie Search">
+    <div class="container">
+        <div class="col-md-4">
+            <img src="static/css/images/welcome-food.jpg" height="134" width="212"/>
+        </div>
+        <div class="col-md-8">
+            <h1>Welcome to Foodie Search</h1>
+            <h4>Foodie Search will help you to find the best restaurants nearby to your location.</h4>
+        </div>
+    </div>
+</div>
+<!--feedback dialog box-->
+<div id="dialog-form" title="Submit Feedback">
+    <div class="col-md-12">
+        <form id="feedbackform" action="https://formspree.io/mileesingh17@gmail.com" method="post">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" class="form-control" required name="name" id="name" placeholder="Enter Name">
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" class="form-control" required name="email" id="email" placeholder="Enter email">
+            </div>
+            <div class="form-group">
+                <label for="comments">Comments:</label>
+                <textarea class="form-control" required id="comments" name="comments"
+                          placeholder="Enter comments"></textarea>
+            </div>
+            <button type="submit" id="feedbackbtn" class="btn btn-default">Submit</button>
+        </form>
+    </div>
+</div>
+
+<!--navigation-->
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <svg style="float:left" width="50" height="50">
+                <circle cx="25" cy="25" r="20" stroke="black" stroke-width="4" fill="green"/>
+
+            </svg>
+            <a style="margin-left:5px;" class="navbar-brand" onclick="showinfo()" href="#">Foodie Search</a>
+        </div>
+        <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a onclick="openfeedback()" href="#">Feedback</a></li>
+
+        </ul>
+    </div>
+</nav>
+
+<div ng-controller="CategoryController" class="container-fluid">
+    <!--show more dialog box-->
+    <div id="dialogmore" title="More Information">
+        <h3 style="margin-bottom:20px;text-align:center">About {{busdata.name}}</h3>
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-1">Top Review</a></li>
+                <li><a href="#tabs-2">More Info</a></li>
+            </ul>
+            <div id="tabs-1">
+
+                <div ng-repeat="review in busdata.reviews">
+                    <div class="container">
+                        <div class="col-md-2">
+                            <img ng-src="{{review.user.image_url}}" alt="{{review.user.name}}"><br>
+                            {{review.user.name}}<br>
+                            <img ng-src="{{review.rating_image_url}}" alt="{{review.rating}}"><br>
+
+                        </div>
+                        <div class="col-md-2">
+                            {{review.excerpt}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="tabs-2">
+                Claimed: {{busdata.is_claimed===false?"Not Claimed":"Claimed"}}<br>
+                Permanently Closed: {{busdata.is_closed===false?"No":"Yes"}}
+            </div>
+        </div>
+    </div>
+
+    <!--autocomplete using angular material-->
+    <div class="row">
+        <div class="col-md-4 col-md-offset-1">
+            <md-autocomplete
+                    ng-disabled="isDisabled"
+                    md-selected-item="selectedItem"
+                    md-search-text="st"
+                    md-items="item in querySearch(st)"
+                    md-item-text="item.title"
+                    md-min-length="0"
+                    placeholder="Select Category">
+                <md-item-template>
+                    <span md-highlight-text="st" md-highlight-flags="^i">{{item.title}}</span>
+                </md-item-template>
+                <md-not-found>
+                    No states matching "{{st}}" were found.
+                </md-not-found>
+            </md-autocomplete>
+        </div>
+        <div class="col-md-5">
+            <place-autocomplete ng-model="location"></place-autocomplete>
+        </div>
+        <div class="col-md-1">
+            <input type="button" value="Find!" ng-click="find()" class="btn btn-primary" style="margin-top:3px;">
+        </div>
+    </div>
+    <br><br>
+    <!--progress bar shown when loading using jquery ui-->
+    <div class="row">
+        <div ng-if="!display" class="col-md-12">
+            <div id="progressbar"></div>
+        </div>
+        <!--data shown from angular binding using ng-repeat-->
+        <div ng-if="display" class="col-md-12">
+            <h2 style="text-align:center">Places for You</h2>
+            <!--panel for data view-->
+
+            <div ng-repeat="place in data.businesses" class="col-md-6">
+                <div style="min-height:200px" class="panel panel-default">
+                    <div class="panel-heading">{{place.name}}</div>
+                    <div class="panel-body">
+                        <!--place image-->
+                        <div class="col-md-3">
+                            <img ng-src="{{place.image_url}}" alt="{{place.id}}">
+                        </div>
+                        <!--place address loop and map button-->
+                        <div class="col-md-5">
+                            <div ng-repeat="add in place.location.display_address">
+                                {{add}}
+                            </div>
+                            <!--map button trigger event showmap-->
+                            <button class="btn btn-primary"
+                                    ng-click="showmap(place.location.coordinate.latitude,place.location.coordinate.longitude)">
+                                Show on Map
+                            </button>
+                        </div>
+                        <!--place review count and contact with view more button-->
+                        <div class="col-md-4">
+                            <img ng-src="{{place.rating_img_url}}" alt="{{place.rating}}"><br>
+                            <i class="fa fa-pencil"></i> {{place.review_count}}<br>
+                            <i class="fa fa-mobile"></i>&nbsp{{place.display_phone}}<br>
+                            <button ng-click="showmore(place.id)" onclick="ga('send','event','review','click','review');" class="btn btn-primary">
+                                View More
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
